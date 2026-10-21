@@ -138,7 +138,9 @@ node scripts/selftest.mjs
 
 ## 与上游的差异
 
-- **去重**：16 → 11。5 个重名技能取 redfox 版；master 独有的数据文件已并入。
+- **去重**：16 → 11。5 个重名技能取 redfox 版。master 版唯一的差异是数据文件用了中文名
+  （`AI工具_爆款数据.md` / `小红书运营_爆款数据.md`），与 redfox 版的 `ai_tools_hot_data.md` /
+  `xhs_operation_hot_data.md` 逐行一致（仅 CRLF/LF 差异），因此没有数据丢失。
 - **改路径**：所有 `python` 调用改为 DSH 自带解释器绝对路径。
 - **保留上游的一个冗余**：`xiaohongshu-similar-account/scripts/` 下有 `xiaohongshu-similar-account.py`
   和 `xiaohongshu_account_recommender.py`，两者 md5 完全相同（`a4b6c267...`），是上游自己复制出来的同一份。
@@ -158,3 +160,15 @@ node scripts/selftest.mjs
 - `xiaohongshu-search` 和 `xiaohongshu-write` 的上游 SKILL.md 明确要求「仅在主 Agent 中执行，
   不派发给子 Agent」——这是上游的并发/限流约束，保留原样。
 - PDF 不支持（违禁词检测只吃 TXT/DOC/DOCX/图片/URL）。
+
+---
+
+## 许可
+
+GPL-3.0，见 [LICENSE](LICENSE)。
+
+注意：本仓库的 11 个技能来自 Qoder 插件市场的三个上游插件
+（`redfox-xhs-creator`、`xiaohongshu-content-inspiration`、`xiaohongshu-viral-content-master`），
+上游未声明许可。这里是按 GPL-3.0 发布本仓库的整合与适配代码；
+如果你要商用或再分发其中上游内容，请自行确认上游条款。
+
