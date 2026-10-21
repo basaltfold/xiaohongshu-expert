@@ -1,4 +1,22 @@
 #!/usr/bin/env node
+/*
+ * 小红书专家 (xiaohongshu-expert) — 自检脚本
+ * Copyright (C) 2026 basaltfold
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 /**
  * 自检：不依赖 DSH 进程，直接以假 ctx 加载 lib/index.js，
  * 校验 11 个技能能被 list/get、frontmatter 可解析、正文能取到、运行时块已注入。
@@ -67,8 +85,12 @@ const pyMatch = pyInfo ? /"python":\s*"([^"]+)"/.exec(pyInfo.content) : null;
 if (pyMatch === null) fail('运行时块里没有 python 路径');
 else {
   const { existsSync } = await import('node:fs');
-  if (existsSync(pyMatch[1])) ok(`python 路径存在: ${pyMatch[1]}`);
-  else fail(`python 路径不存在: ${pyMatch[1]}`);
+  const exists = existsSync(pyMatch[1]);
+  // 该路径是「本机 DSH 运行时」的绝对路径，CI runner 上必然不存在。
+  // 默认只作提示；设 REQUIRE_PYTHON=1 才升为硬失败（本机验收用）。
+  if (exists) ok(`python 路径存在: ${pyMatch[1]}`);
+  else if (process.env.REQUIRE_PYTHON === '1') fail(`python 路径不存在: ${pyMatch[1]}`);
+  else console.log(`SKIP  python 路径在非本机环境不存在（CI 正常）: ${pyMatch[1]}`);
 }
 
 const failed = checks.filter(([state]) => state === 'FAIL');

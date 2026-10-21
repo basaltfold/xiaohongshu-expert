@@ -1,0 +1,84 @@
+name: selftest
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  selftest:
+    name: 插件自检 / ${{ matrix.os }} / node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [22, 24]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: 语法检查（所有 JS）
+        shell: bash
+        run: |
+          set -euo pipefail
+          find lib scripts -name '*.js' -o -name '*.mjs' | while read -r f; do
+            echo "check $f"
+            node --check "$f"
+          done
+
+      - name: package.json 完整性
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -e '
+            const fs = require("fs");
+            const p = JSON.parse(fs.readFileSync("package.json", "utf8"));
+            const need = ["name", "version", "main", "dsh"];
+            for (const k of need) {
+              if (!p[k]) { console.error("package.json 缺字段: " + k); process.exit(1); }
+            }
+            if (!p.dsh.bundle || !p.dsh.bundle.patch) {
+              console.error("package.json 缺 dsh.bundle.patch");
+              process.exit(1);
+            }
+            if (!fs.existsSync(p.dsh.bundle.patch)) {
+              console.error("cordis.patch.yml 不存在");
+              process.exit(1);
+            }
+            console.log("package.json OK:", p.name + "@" + p.version);
+          '
+
+      - name: 技能文件完整性（11 个 SKILL.md + frontmatter）
+        shell: bash
+        run: |
+          set -euo pipefail
+          n=$(find assets -name SKILL.md -mindepth 2 | wc -l)
+          echo "SKILL.md 数量: $n"
+          test "$n" -eq 11 || { echo "应为 11 个"; exit 1; }
+          find assets -name SKILL.md -mindepth 2 | while read -r f; do
+            head -1 "$f" | grep -q '^---$' || { echo "缺 frontmatter 起始: $f"; exit 1; }
+            sed -n '2,/^---$/p' "$f" | grep -q '^name:' || { echo "缺 name: $f"; exit 1; }
+            sed -n '2,/^---$/p' "$f" | grep -q '^description:' || { echo "缺 description: $f"; exit 1; }
+          done
+          echo "frontmatter OK"
+
+      - name: 无明文密钥
+        shell: bash
+        run: |
+          set -euo pipefail
+          # 真实 key 形如 ak_ 后跟 16+ 位；文档里的 ak_xxxxxxxx 占位符不算
+          if grep -rInE 'ak_[A-Za-z0-9]{16,}' --include='*.md' --include='*.py' --include='*.js' --include='*.mjs' . ; then
+            echo "发现疑似真实 API Key"; exit 1
+          fi
+          echo "无明文密钥"
+
+      - name: 插件自检
+        shell: bash
+        run: node scripts/selftest.mjs
