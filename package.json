@@ -1,0 +1,29 @@
+{
+  "name": "xiaohongshu-expert",
+  "version": "1.0.0",
+  "private": true,
+  "description": "小红书专家 — 11 个小红书内容创作 / 数据分析技能的 DSH 宿主插件",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json"
+  },
+  "files": [
+    "lib",
+    "assets",
+    "locale",
+    "cordis.patch.yml",
+    "CONNECTORS.md",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  }
+}
