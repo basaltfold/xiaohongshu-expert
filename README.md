@@ -1,7 +1,12 @@
 # 小红书专家 (xiaohongshu-expert)
 
+[![selftest](https://github.com/basaltfold/xiaohongshu-expert/actions/workflows/selftest.yml/badge.svg)](https://github.com/basaltfold/xiaohongshu-expert/actions/workflows/selftest.yml)
+
 把 Qoder 上三个小红书插件的全部能力，去重整合成 **一个 DeepSeek Harness 宿主插件**：
 11 个技能、16 个可执行脚本，装好后自动出现在 DSH 技能目录里。
+
+CI 在 ubuntu / windows × node 22 / 24 四个组合上跑：JS 语法检查、
+package.json 完整性、11 个 SKILL.md 的 frontmatter 校验、明文密钥扫描、插件自检。
 
 ---
 
